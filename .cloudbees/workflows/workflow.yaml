@@ -1,0 +1,54 @@
+apiVersion: automation.cloudbees.io/v1alpha1
+kind: workflow
+name: My automation
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  push:
+    branches:
+      - '**'
+
+jobs:
+  build:
+    steps:
+      - name: action test
+        uses: calculi-corp/ng-dsl-example/.cloudbees/actions/hello-action
+        with:
+          arg-1: |
+            Optimus Prime
+      - name: get-source-code
+        uses: cloudbees-io/checkout@v1
+        with:
+          repository: alexeysas/test-deploymnet-app-go
+          path: test-deploymnet-app-go
+      - name: Build code
+        uses: docker://golang:1.20.3-alpine3.17
+        shell: sh
+        timeout-minutes: 0.5
+        run: |
+          export GOPATH=$HOME/go
+          export PATH=$PATH:$GOPATH/bin
+          go version
+          cd ./test-deploymnet-app-go
+          go build
+      - name: clone the workflow repo
+        uses: cloudbees-io/checkout@v1
+      - id: dockerconfig
+        name: Configure container registry credentials
+        uses: cloudbees-io/configure-oci-credentials@v0
+        with:
+          registry: ${{ vars.STAGING_DOCKER_REGISTRY }}
+          username: ${{ secrets.STAGING_DOCKER_USERNAME }}
+          password: ${{ secrets.STAGING_DOCKER_PASSWORD }}
+      - name: docker build and publish
+        uses: cloudbees-io/kaniko@v1
+        with:
+          destination: registry.saas-dev.beescloud.com/staging/ng-dsl-example:1.0.1,registry.saas-dev.beescloud.com/staging/ng-dsl-example:latest
+          labels: maintaner=sdp-pod-3,email=engineering@cloudbees.io
+          context: ${{ cloudbees.workspace }}/ng-dsl-example
+          build-args: BUILDKIT_CONTEXT_KEEP_GIT_DIR=1,BUILDKIT_INLINE_CACHE=1,BUILD_ARG_SPACES='i am a space'
+  publish:
+    steps:
+      - name: publish to staging
+        uses: cloudbees-io/checkout@v1
