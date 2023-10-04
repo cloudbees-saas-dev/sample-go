@@ -1,15 +1,12 @@
 apiVersion: automation.cloudbees.io/v1alpha1
 kind: workflow
 name: My automation
+
 on:
   push:
     branches:
-      - "**"
-      - main
-      - test-branch
-  pull_request:
-    branches:
-      - test-branch-2
+      - '**'
+
 jobs:
   build:
     steps:
@@ -18,13 +15,3 @@ jobs:
         shell: sh
         run: |
           echo "hello world"
-    outputs:
-      zxcvbxvz: z`cxvbxz`
-  Test Job:
-    steps:
-      - name: Test Step
-        uses: cloudbees-io/checkout
-    outputs:
-      dtfghfgdfsd: dsfghhkjfhdg
-env:
-  Value: Value2
