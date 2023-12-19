@@ -7,7 +7,7 @@ on:
     branches:
       - '**'
 
-jobs:                                                                                                                                                                                                                                                                                                                                                                                                                               
+jobs:                                                                                                                                                                                                                                                                                                                                                                                                                                
   build:
     steps:
       - name: Say hello
